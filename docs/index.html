@@ -4,53 +4,119 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#f7fbff" />
+    <meta name="theme-color" content="#f4f7fb" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' http://127.0.0.1:8787 http://localhost:8787; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
+      content="default-src 'self'; connect-src 'self' https://*.trycloudflare.com http://127.0.0.1:8787 http://localhost:8787; style-src 'self'; script-src 'self'; img-src 'self' blob: data:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
     />
-    <title>Codex Web</title>
-    <meta name="description" content="このMacのCodexへプロンプトを送るシンプルな画面" />
+    <title>折り紙設計</title>
+    <meta name="description" content="CodexとOrieditaを使う折り紙設計ウェブアプリ" />
     <link rel="stylesheet" href="./app.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <section class="access-screen" id="access-screen">
+      <form class="access-card" id="access-form">
+        <h1>折り紙設計</h1>
+        <label for="access-key">アクセスキー</label>
+        <input id="access-key" name="key" type="password" autocomplete="current-password" />
+        <button type="submit">接続</button>
+        <button class="quiet-button" id="endpoint-toggle" type="button">接続先を変更</button>
+        <label class="endpoint-field" id="endpoint-field" for="endpoint-url">
+          接続先URL
+          <input id="endpoint-url" name="endpoint" type="url" autocomplete="url" />
+        </label>
+        <p class="access-error" id="access-error" role="alert"></p>
+      </form>
+    </section>
+
+    <div class="app-shell" id="app-shell" aria-hidden="true">
       <header class="topbar">
-        <div class="connection" aria-live="polite">
-          <span class="status-dot" id="status-dot"></span>
-          <span id="status-label">Macを確認中</span>
-          <span class="workspace-name" id="workspace-name"></span>
-        </div>
+        <div class="site-title">折り紙設計</div>
         <div class="top-actions">
-          <a class="local-link" id="local-link" href="http://127.0.0.1:8787">Macで開く</a>
-          <button class="text-button" id="new-thread" type="button">新しい会話</button>
+          <div class="connection" aria-live="polite">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-label">接続中</span>
+          </div>
+          <button class="text-button" id="new-project" type="button">新しい設計</button>
         </div>
       </header>
 
-      <main class="conversation" id="conversation">
-        <section class="empty-state" id="empty-state">
-          <h1>何をしますか？</h1>
+      <main class="workspace">
+        <section class="prompt-panel">
+          <label class="sr-only" for="prompt">作りたい折り紙</label>
+          <textarea id="prompt" rows="3" maxlength="12000" placeholder="作りたい折り紙を入力"></textarea>
+          <div class="attachment-list" id="attachment-list"></div>
+          <div class="prompt-actions">
+            <label class="file-button" for="file-input">＋ 画像・ファイル</label>
+            <input
+              id="file-input"
+              type="file"
+              multiple
+              accept="image/*,.pdf,.svg,.cp,.fold,.ori,.txt,.md,.json,.obj,.glb,.gltf"
+            />
+            <span class="run-status" id="run-status"></span>
+            <button class="primary-button" id="run-button" type="button">設計する</button>
+          </div>
+        </section>
+
+        <section class="results" aria-labelledby="results-title">
+          <div class="section-heading">
+            <h1 id="results-title">完成イメージ</h1>
+            <p id="result-summary"></p>
+          </div>
+
+          <div class="preview-grid">
+            <article class="result-card">
+              <header>
+                <h2>完成予想図</h2>
+                <a class="artifact-link" data-link="prediction" hidden>開く</a>
+              </header>
+              <div class="preview-stage prediction-stage" data-stage="prediction">
+                <div class="paper-placeholder" aria-hidden="true"></div>
+                <span>まだありません</span>
+              </div>
+              <p data-caption="prediction"></p>
+            </article>
+
+            <article class="result-card">
+              <header>
+                <h2>Oriedita</h2>
+                <a class="artifact-link" data-link="oriedita" hidden>開く</a>
+              </header>
+              <div class="preview-stage oriedita-stage" data-stage="oriedita">
+                <div class="crease-placeholder" aria-hidden="true"></div>
+                <span>検証結果を表示</span>
+              </div>
+              <p data-caption="oriedita"></p>
+            </article>
+
+            <article class="result-card">
+              <header>
+                <h2>3Dモデル</h2>
+                <a class="artifact-link" data-link="model" hidden>開く</a>
+              </header>
+              <div class="preview-stage model-stage" data-stage="model">
+                <div class="model-placeholder" aria-hidden="true"></div>
+                <span>微調整後の形を表示</span>
+              </div>
+              <p data-caption="model"></p>
+            </article>
+          </div>
+        </section>
+
+        <section class="steps-panel" aria-labelledby="steps-title">
+          <div class="section-heading compact">
+            <h1 id="steps-title">折順</h1>
+            <span id="step-count">0 steps</span>
+          </div>
+          <ol class="steps-list" id="steps-list">
+            <li class="steps-empty">折順はここに表示されます</li>
+          </ol>
         </section>
       </main>
-
-      <footer class="composer-wrap">
-        <form class="composer" id="composer">
-          <label class="sr-only" for="prompt">Codexへのプロンプト</label>
-          <textarea
-            id="prompt"
-            name="prompt"
-            rows="1"
-            maxlength="12000"
-            placeholder="Codexにやってほしいことを入力"
-            autocomplete="off"
-            disabled
-          ></textarea>
-          <button class="send-button" id="send-button" type="submit" disabled>送信</button>
-        </form>
-        <p class="hint" id="hint">このMacのCodexに接続します</p>
-      </footer>
     </div>
 
+    <script src="./config.js"></script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
