@@ -1,0 +1,16 @@
+{
+  "name": "codex-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check docs/app.js"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "^0.156.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
